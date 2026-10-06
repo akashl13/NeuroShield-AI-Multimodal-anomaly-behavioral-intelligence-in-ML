@@ -1,0 +1,12 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.db
+*.db-journal
+ml/models/*.joblib
+ml/models/*.pkl
+.pytest_cache/
+.coverage
+htmlcov/
