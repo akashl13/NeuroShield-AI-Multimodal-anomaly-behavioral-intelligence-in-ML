@@ -1,5 +1,12 @@
 # NeuroShield AI
 
+![NeuroShield banner](assets/neuroshield-banner.svg)
+
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PySide6](https://img.shields.io/badge/PySide6-Desktop%20UI-41CD52?logo=qt&logoColor=white)](https://pypi.org/project/PySide6/)
+[![SQLite](https://img.shields.io/badge/DB-SQLite%20%7C%20Neon-6A5ACD)](https://www.sqlite.org/)
+[![Status](https://img.shields.io/badge/Status-Demo%20%26%20Research-orange)](https://github.com/akashl13/NeuroShield-AI-Multimodal-anomaly-behavioral-intelligence-in-ML)
+
 A modern behavioral intelligence platform for detecting risky user activity, surfacing explainable alerts, and supporting analyst investigations in a desktop security operations workflow.
 
 ## Overview
@@ -158,7 +165,3 @@ The synthetic data is designed for demonstration and educational analysis. It is
 ## Mission
 
 NeuroShield AI demonstrates how behavioral baselines, explainable risk modeling, and analyst workflows can be combined into a practical security intelligence tool for learning, prototyping, and operational simulation.
-
-## License
-
-This project is provided for educational and demonstration purposes. Review the repository license before using it in production workflows.
