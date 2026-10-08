@@ -21,6 +21,20 @@ def test_synthetic_frame_produces_finite_model_features():
     assert set(frame["is_anomaly"].unique()) == {0, 1}
 
 
+def test_synthetic_generator_profiles_are_bounded_and_validated():
+    normal = generate_dataset(100, seed=123, profile="normal")
+    suspicious = generate_dataset(100, seed=123, profile="suspicious")
+    assert normal["is_anomaly"].sum() == 0
+    assert suspicious["is_anomaly"].sum() > 50
+
+    try:
+        generate_dataset(100, profile="unknown")
+    except ValueError as exc:
+        assert "Profile must be" in str(exc)
+    else:
+        raise AssertionError("An unsupported generation profile was accepted")
+
+
 def test_isolation_forest_returns_bounded_score():
     result = detect_anomaly({"login_hour": 3, "device_was_known": False, "files_accessed": 50, "failed_login_attempts": 4})
     assert 0 <= result["score"] <= 100

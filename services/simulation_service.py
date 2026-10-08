@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 import random
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
+from sqlalchemy.orm import Session
+
+from database.models import User
+from services.event_service import record_event
 
 
 def generate_behavior_event(username: str, suspicious: bool = False, seed: int | None = None) -> dict:
@@ -28,3 +33,32 @@ def generate_behavior_event(username: str, suspicious: bool = False, seed: int |
         "cpu_percent": round(rng.gauss(35, 10), 1), "network_bytes_mb": round(rng.lognormvariate(3.3, 0.45), 1),
         "is_synthetic_anomaly": False,
     }
+
+
+def generate_demo_events(session: Session, user: User, count: int = 30) -> int:
+    if not 1 <= count <= 100:
+        raise ValueError("Demo event count must be between 1 and 100.")
+
+    rng = random.Random()
+    anomaly_count = min(count, max(3, count // 6))
+    anomaly_indices = set(rng.sample(range(count), anomaly_count))
+    now = datetime.now(timezone.utc)
+    try:
+        for index in range(count):
+            payload = generate_behavior_event(
+                user.username,
+                suspicious=index in anomaly_indices,
+                seed=rng.randrange(1 << 32),
+            )
+            event_time = now - timedelta(
+                days=rng.randrange(14),
+                hours=rng.randrange(24),
+                minutes=rng.randrange(60),
+            )
+            payload["timestamp"] = event_time
+            record_event(session, user, payload, commit=False)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    return count

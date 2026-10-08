@@ -63,6 +63,7 @@ class BehaviorEvent(Base):
     prediction: Mapped[Prediction | None] = relationship(back_populates="event", uselist=False, cascade="all, delete-orphan")
     risk_score: Mapped[RiskScore | None] = relationship(back_populates="event", uselist=False, cascade="all, delete-orphan")
     anomaly: Mapped[Anomaly | None] = relationship(back_populates="event", uselist=False, cascade="all, delete-orphan")
+    alerts: Mapped[list[Alert]] = relationship(back_populates="event", cascade="all, delete-orphan")
 
 
 class BehaviorBaseline(Base):
@@ -129,6 +130,7 @@ class Alert(Base):
     severity: Mapped[str] = mapped_column(String(20), index=True)
     status: Mapped[str] = mapped_column(String(20), default="open", index=True)
     message: Mapped[str] = mapped_column(Text)
+    event: Mapped[BehaviorEvent] = relationship(back_populates="alerts")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     reviewed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

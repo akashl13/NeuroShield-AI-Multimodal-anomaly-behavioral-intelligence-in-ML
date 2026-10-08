@@ -3,11 +3,14 @@ from __future__ import annotations
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QMainWindow, QMessageBox, QPushButton, QStackedWidget, QVBoxLayout, QWidget
 
+from config.settings import DATABASE_URL
 from database.connection import SessionLocal
 from gui.alerts import AlertsPage
 from gui.analytics import AnalyticsPage
 from gui.dashboard import DashboardPage
 from gui.events import EventsPage
+from gui.intelligence import UserDevicePage
+from gui.investigations import InvestigationsPage
 from gui.settings import SettingsPage
 from gui.theme import APP_STYLE
 from services.auth_service import validate_session
@@ -23,7 +26,7 @@ class MainWindow(QMainWindow):
         self.logged_out = False
         self.setWindowTitle("NEUROSHIELD AI | Behavioral Risk Intelligence")
         self.resize(1440, 900)
-        self.setMinimumSize(1080, 680)
+        self.setMinimumSize(980, 640)
         self.setStyleSheet(APP_STYLE)
         root = QWidget()
         root_layout = QHBoxLayout(root)
@@ -31,21 +34,31 @@ class MainWindow(QMainWindow):
         root_layout.setSpacing(0)
         sidebar = QFrame()
         sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(210)
+        sidebar.setFixedWidth(224)
         sidebar_layout = QVBoxLayout(sidebar)
-        sidebar_layout.setContentsMargins(12, 22, 12, 16)
-        brand = QLabel("NEUROSHIELD\n<span style='color:#50c0bc'>AI</span>")
+        sidebar_layout.setContentsMargins(14, 22, 14, 16)
+        sidebar_layout.setSpacing(7)
+        brand = QLabel("NEUROSHIELD <span style='color:#63d0bd'>AI</span>")
         brand.setTextFormat(Qt.TextFormat.RichText)
-        brand.setStyleSheet("font-size:19px;font-weight:800;padding:0 8px 14px")
+        brand.setStyleSheet("font-size:18px;font-weight:800;padding:0 8px 4px")
         sidebar_layout.addWidget(brand)
-        nav_items = [("Overview", "◈"), ("Events", "▤"), ("Alerts", "!"), ("Analytics", "⌁"), ("Settings", "⚙")]
+        brand_detail = QLabel("BEHAVIORAL RISK INTELLIGENCE")
+        brand_detail.setStyleSheet("color:#87a2b1;font-size:9px;letter-spacing:1px;padding:0 8px 20px")
+        sidebar_layout.addWidget(brand_detail)
+        section_label = QLabel("WORKSPACE")
+        section_label.setStyleSheet("color:#718c9d;font-size:9px;font-weight:700;letter-spacing:1px;padding:8px")
+        sidebar_layout.addWidget(section_label)
+        nav_items = [("Overview", "◈"), ("Events", "▤"), ("Alerts", "!"), ("Investigations", "⌕"), ("Analytics", "⌁"), ("Users & devices", "▦"), ("Settings", "⚙")]
         self.stack = QStackedWidget()
-        self.dashboard_page = DashboardPage()
+        self.dashboard_page = DashboardPage(user)
         self.events_page = EventsPage(user)
         self.alerts_page = AlertsPage(user)
+        self.investigations_page = InvestigationsPage(user)
         self.analytics_page = AnalyticsPage()
+        self.intelligence_page = UserDevicePage()
         self.settings_page = SettingsPage(self.analytics_page)
-        self.pages = [self.dashboard_page, self.events_page, self.alerts_page, self.analytics_page, self.settings_page]
+        self.pages = [self.dashboard_page, self.events_page, self.alerts_page, self.investigations_page, self.analytics_page, self.intelligence_page, self.settings_page]
+        self.dashboard_page.load_demo_requested.connect(self.events_page.load_demo_data)
         self.nav_buttons: list[QPushButton] = []
         for index, (label, icon) in enumerate(nav_items):
             button = QPushButton(f"{icon}    {label}")
@@ -58,21 +71,26 @@ class MainWindow(QMainWindow):
             sidebar_layout.addWidget(button)
             self.stack.addWidget(self.pages[index])
         sidebar_layout.addStretch(1)
-        privacy = QLabel("SYNTHETIC TELEMETRY\nNo real user data")
-        privacy.setStyleSheet("color:#85a0a7;font-size:10px;padding:8px")
+        privacy = QLabel("DEMO-SAFE WORKSPACE\nSynthetic telemetry only")
+        privacy.setStyleSheet("color:#87a2b1;font-size:9px;line-height:1.5;padding:8px")
         sidebar_layout.addWidget(privacy)
         root_layout.addWidget(sidebar)
         content = QWidget()
         content_layout = QVBoxLayout(content)
         content_layout.setContentsMargins(0, 0, 0, 0)
         header = QFrame()
-        header.setStyleSheet("background:white;border-bottom:1px solid #e1e7e9")
+        header.setObjectName("topbar")
         header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(22, 9, 22, 9)
-        header_layout.addWidget(QLabel("BEHAVIORAL RISK INTELLIGENCE"))
+        header_layout.setContentsMargins(24, 11, 24, 11)
+        workspace_label = QLabel("Security operations")
+        workspace_label.setStyleSheet("font-size:13px;font-weight:600;color:#536a7a")
+        header_layout.addWidget(workspace_label)
         header_layout.addStretch(1)
+        environment_label = QLabel("LOCAL · DEMO" if not DATABASE_URL.startswith(("postgresql", "postgres")) else "NEON")
+        environment_label.setStyleSheet("font-size:10px;font-weight:700;color:#52736d;background:#eaf3ef;border-radius:4px;padding:6px 8px")
+        header_layout.addWidget(environment_label)
         user_label = QLabel(f"{user.username}  ·  {user.role.title()}")
-        user_label.setStyleSheet("font-weight:600;color:#3e535d")
+        user_label.setStyleSheet("font-weight:600;color:#294356;background:#f1f6f8;border-radius:14px;padding:7px 12px")
         header_layout.addWidget(user_label)
         logout = QPushButton("Log out")
         logout.setObjectName("secondary")

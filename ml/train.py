@@ -23,6 +23,8 @@ def train_models(dataset_path: Path, model_dir: Path = MODEL_DIR, persist_metric
     frame = pd.read_csv(dataset_path)
     features = preprocess_frame(frame)
     labels = frame["is_anomaly"].astype(int)
+    if labels.nunique() != 2:
+        raise ValueError("Training requires both normal and anomalous examples in the dataset.")
     x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.25, stratify=labels, random_state=42)
     positive_weight = max(1.0, (len(y_train) - int(y_train.sum())) / max(1, int(y_train.sum())))
     models = {

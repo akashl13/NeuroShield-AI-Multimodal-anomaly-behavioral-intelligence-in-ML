@@ -117,6 +117,8 @@ class InvestigationDialog(QDialog):
                     bar.setFormat("")
                     row.addWidget(bar, 2)
                     self.factors.addLayout(row)
+            else:
+                self.factors.addWidget(QLabel("Explainability unavailable for this prediction."))
             self.baseline.setText(
                 f"User baseline: typical login {baseline['mean_login_hour']:.1f}:00 · session {baseline['mean_session_minutes']:.0f} min · "
                 f"files {baseline['mean_files_accessed']:.1f} · actions {baseline['mean_action_count']:.0f} · "

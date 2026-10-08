@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from database.models import Alert, Investigation
+from database.models import Alert, Investigation, User
 
 
 def create_alert_if_needed(session: Session, event_id: int, username: str, score: int, level: str, reasons: list[str]) -> Alert | None:
@@ -43,3 +43,31 @@ def save_investigation(session: Session, alert: Alert, analyst_id: int, notes: s
     session.commit()
     session.refresh(investigation)
     return investigation
+
+
+def update_alert_triage(session: Session, alert: Alert, status: str, assigned_to_id: int) -> Alert:
+    normalized_status = status.strip().lower().replace(" ", "_")
+    allowed_statuses = {"open", "acknowledged", "investigating", "resolved", "false_positive"}
+    if normalized_status not in allowed_statuses:
+        raise ValueError("Choose a supported alert status.")
+    assignee = session.get(User, assigned_to_id)
+    if assignee is None or not assignee.is_active or assignee.role not in {"admin", "analyst"}:
+        raise ValueError("Choose an active analyst or administrator.")
+
+    now = datetime.now(timezone.utc)
+    alert.status = normalized_status
+    alert.reviewed_by = assignee.id
+    alert.reviewed_at = now
+    investigation = session.query(Investigation).filter_by(alert_id=alert.id).first()
+    if normalized_status == "investigating":
+        if investigation is None:
+            investigation = Investigation(alert_id=alert.id, analyst_id=assignee.id)
+            session.add(investigation)
+        investigation.analyst_id = assignee.id
+        investigation.outcome = "in_review"
+    elif investigation is not None and normalized_status in {"open", "resolved", "false_positive"}:
+        investigation.outcome = "in_review" if normalized_status == "open" else normalized_status
+
+    session.commit()
+    session.refresh(alert)
+    return alert

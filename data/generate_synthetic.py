@@ -10,11 +10,15 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "data" / "synthetic_behavior_data.csv"
 
 
-def generate_dataset(rows: int = 2400, seed: int = 42) -> pd.DataFrame:
+def generate_dataset(rows: int = 2400, seed: int = 42, profile: str = "MIXED") -> pd.DataFrame:
     if rows < 100:
         raise ValueError("Generate at least 100 rows for a useful train/test split.")
+    profile = profile.strip().upper()
+    if profile not in {"NORMAL", "SUSPICIOUS", "MIXED"}:
+        raise ValueError("Profile must be NORMAL, SUSPICIOUS, or MIXED.")
     rng = np.random.default_rng(seed)
-    anomalous = rng.random(rows) < 0.22
+    anomaly_rate = {"NORMAL": 0.0, "SUSPICIOUS": 0.82, "MIXED": 0.22}[profile]
+    anomalous = rng.random(rows) < anomaly_rate
     data: dict[str, object] = {
         "timestamp": pd.date_range("2025-01-01", periods=rows, freq="15min").astype(str),
         "user_id": [f"SYN-USER-{index % 32 + 1:03d}" for index in range(rows)],
@@ -41,9 +45,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate anonymized NeuroShield behavior telemetry.")
     parser.add_argument("--rows", type=int, default=2400)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--profile", choices=("NORMAL", "SUSPICIOUS", "MIXED"), default="MIXED")
     parser.add_argument("--output", type=Path, default=OUTPUT)
     args = parser.parse_args()
-    frame = generate_dataset(args.rows, args.seed)
+    frame = generate_dataset(args.rows, args.seed, args.profile)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(args.output, index=False)
     print(f"Generated {len(frame):,} synthetic events ({frame['is_anomaly'].sum():,} anomalous): {args.output}")

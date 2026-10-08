@@ -23,12 +23,18 @@ def page_header(title: str, subtitle: str) -> QVBoxLayout:
 
 def stat_card(label: str, value: str = "0", accent: str = "#087f8c") -> tuple[QFrame, QLabel]:
     card = QFrame()
-    card.setStyleSheet(f"QFrame{{background:white;border:1px solid #e1e7e9;border-left:3px solid {accent};border-radius:4px;}}")
+    card.setObjectName("statCard")
+    card.setStyleSheet(f"""
+        QFrame#statCard {{ background: #ffffff; border: 1px solid #e4eaf0; border-top: 3px solid {accent}; border-radius: 10px; }}
+        QFrame#statCard QLabel {{ border: 0; }}
+    """)
     layout = QVBoxLayout(card)
-    title = QLabel(label.upper())
-    title.setStyleSheet("color:#75848b;font-size:10px;font-weight:700;border:0")
+    layout.setContentsMargins(15, 13, 15, 14)
+    layout.setSpacing(8)
+    title = QLabel(label)
+    title.setStyleSheet("color:#718294;font-size:11px;font-weight:600;border:0")
     number = QLabel(value)
-    number.setStyleSheet("color:#172b35;font-size:25px;font-weight:700;border:0")
+    number.setStyleSheet("color:#142738;font-size:27px;font-weight:700;border:0")
     layout.addWidget(title)
     layout.addWidget(number)
     return card, number
@@ -38,9 +44,11 @@ def make_table(headers: list[str]) -> QTableWidget:
     table = QTableWidget(0, len(headers))
     table.setHorizontalHeaderLabels(headers)
     table.setAlternatingRowColors(True)
+    table.setShowGrid(False)
     table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
     table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
     table.verticalHeader().setVisible(False)
+    table.verticalHeader().setDefaultSectionSize(38)
     table.horizontalHeader().setStretchLastSection(True)
     return table
 
