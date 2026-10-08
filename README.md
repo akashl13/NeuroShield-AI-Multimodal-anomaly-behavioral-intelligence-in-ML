@@ -1,19 +1,63 @@
-# NEUROSHIELD AI
+# NeuroShield AI
 
-**Multimodal Behavioral Anomaly & Risk Intelligence System** is a defensive security analytics desktop application for synthetic/anonymized user and device telemetry. It establishes behavioral baselines, detects anomalous activity, calculates explainable 0-100 risk, and supports analyst alert investigations.
+A modern behavioral intelligence platform for detecting risky user activity, surfacing explainable alerts, and supporting analyst investigations in a desktop security operations workflow.
 
-## Capabilities
+## Overview
 
-- Local account registration and login with bcrypt password hashes, admin/analyst roles, hashed expiring sessions, and logout. The first registered account is administrator; later registrations are analysts. Passwords must be at least 10 characters.
-- SQLAlchemy persistence for users, devices, events, user/device baselines, predictions, anomalies, risk scores, alerts, investigations, model metrics, and auth sessions. SQLite is the zero-configuration default; PostgreSQL/Neon is selected with `DATABASE_URL`.
-- Synthetic normal/suspicious event simulation and CSV import. Imported device identifiers are irreversibly hashed, IP addresses are replaced with `192.0.2.1`, and imported user IDs are not retained.
-- Isolation Forest inference, Logistic Regression/Random Forest/XGBoost comparison, risk bands, rule-factor explanations, and on-demand Random Forest SHAP attribution.
-- Database-backed overview and risk distribution, searchable/paginated event review, alert triage, investigation workspace, user/device intelligence, behavior timelines, and model-performance comparison.
-- Configurable synthetic datasets from 100 to 10,000 events with normal, suspicious-heavy, or mixed behavior profiles.
+NeuroShield AI is a defensive analytics application designed to model normal user behavior, identify suspicious activity patterns, and assign a transparent risk score from 0 to 100. It combines behavioral telemetry, ML-based anomaly detection, and analyst-facing investigation views into a single operational dashboard.
 
-## Quick Start
+This project is built for demo, training, and research use. It treats telemetry as synthetic or anonymized data and focuses on explainability, analyst workflow, and visibility into risk posture rather than production surveillance.
 
-Python 3.11 or later is required. On a Linux desktop or a Codespace configured with a graphical display/X11 forwarding, install Qt's system libraries and the Python dependencies:
+## Why this project matters
+
+Traditional monitoring systems often surface raw logs without context. NeuroShield AI adds a human-centered layer:
+
+- behavioral baselines for each user and device
+- anomaly detection across login, session, and application usage patterns
+- explainable risk scoring with traceable contributing factors
+- alert triage and investigation workflows for analysts
+- model comparison and dashboard analytics for operational review
+
+## Key capabilities
+
+- Secure local authentication with bcrypt password hashing and role-based access
+- SQLite-first configuration with PostgreSQL/Neon support via `DATABASE_URL`
+- Synthetic event simulation and CSV import for realistic demo data
+- Machine learning workflows covering Isolation Forest, Logistic Regression, Random Forest, and XGBoost
+- Dashboard metrics for users, events, anomalies, alerts, and investigation workload
+- Searchable event review, alert triage, and investigation records tied to behavioral signals
+- Explainable risk outputs that highlight the main behavioral contributors behind a score
+
+## Tech stack
+
+- Python 3.11+
+- PySide6 for the desktop application interface
+- SQLAlchemy + PostgreSQL/SQLite for persistence
+- scikit-learn, XGBoost, pandas, and numpy for ML workflows
+- dotenv for configuration
+- Joblib for model artifact persistence
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI[PySide6 UI] --> Services[Auth / Event / Alert / Simulation Services]
+    Services --> ORM[SQLAlchemy ORM]
+    ORM --> DB[(SQLite or Neon PostgreSQL)]
+    Services --> ML[Behavioral scoring and model inference]
+    ML --> Artifacts[Model artifacts / metrics]
+    DB --> UI
+```
+
+## Quick start
+
+### Prerequisites
+
+- Python 3.11 or later
+- Linux desktop or graphical environment for the app UI
+- Optional: Codespaces with browser-based VNC/noVNC access
+
+### Install
 
 ```bash
 sudo apt-get update
@@ -25,120 +69,96 @@ python -m pip install -r requirements.txt
 cp .env.example .env
 ```
 
-To use local SQLite, leave `DATABASE_URL` unset in `.env`. To use Neon, set `DATABASE_URL` there to the Neon PostgreSQL connection string, including `sslmode=require`. Never put credentials in source control; `.env` is ignored by Git.
+### Configure database
 
-Run the complete local workflow from the repository root:
-
-```bash
-python -m database.init_db
-python data/generate_synthetic.py
-python -m ml.train
-python -m pytest -q
-python app.py
-```
-
-The first account can also be created before launching the GUI, with the password requested securely in the terminal:
-
-```bash
-python app.py --create-user admin
-```
-
-Alternatively, choose **Create an analyst account** in the login window. The first account is automatically an administrator. From the dashboard or **Events**, choose **Load demo data** to add 30 synthetic events across the previous two weeks, including suspicious examples that create alerts. Demo records are additive and scoped to the signed-in analyst; existing data is not changed. **Settings** lets administrators regenerate the training CSV and retrain the models. Import `data/synthetic_behavior_data.csv` from **Events** to load historical sample activity for the signed-in analyst.
-
-### GitHub Codespaces
-
-In a Codespace, run the setup commands above in the integrated terminal, then:
-
-```bash
-python -m database.init_db
-python data/generate_synthetic.py
-python -m ml.train
-python -m pytest -q
-python app.py
-```
-
-Codespaces does not provide a desktop display by default. The PySide6 window requires a configured remote desktop or X11 display; `QT_QPA_PLATFORM=offscreen` is suitable only for non-interactive widget smoke checks, not for using the application.
-
-For Neon, set the real connection string in `.env` before initializing the database and training so model metrics are persisted to the selected database. Schema initialization uses SQLAlchemy `create_all` and is intended for a fresh demonstration database.
-
-Use the URL structure below as a template; keep real credentials in the ignored `.env` file and never commit them:
+Use local SQLite by leaving `DATABASE_URL` unset, or point to Neon/PostgreSQL with a real connection string:
 
 ```dotenv
 DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST/DBNAME?sslmode=require
 ```
 
-To open the desktop through a browser in a Linux Codespace, run `bash run_desktop_browser.sh` after installing Xvfb, x11vnc, and websockify. Open the forwarded port 6080 and select **Connect** in noVNC. Keep the forwarded port private; Codespaces authentication is required.
+Keep your credentials in the ignored `.env` file and never commit them to version control.
 
-## Training And Evaluation
+### Run the project
 
-`python -m ml.train` reads `data/synthetic_behavior_data.csv`, stratifies a held-out test set, trains Logistic Regression, Random Forest, XGBoost, and Isolation Forest, saves Joblib artifacts under `ml/models/`, persists classification metrics, and writes `ml/model_evaluation_report.md`. The report includes accuracy, precision, recall, F1, ROC-AUC, and confusion matrices.
+```bash
+python -m database.init_db
+python data/generate_synthetic.py
+python -m ml.train
+python -m pytest -q
+python app.py
+```
 
-The supplied generator intentionally creates learnable synthetic anomalies. Its evaluation scores are demonstration results, not estimates of production security performance. The Isolation Forest also runs before training using a deterministic synthetic normal reference, so event scoring remains available before model artifacts exist.
+To create the first admin user from the terminal:
 
-Generate a selectable dataset from the terminal with `python data/generate_synthetic.py --rows 1000 --profile MIXED`. Normal-only data is useful for baseline exploration but cannot train the supervised classifiers; training requires both classes.
+```bash
+python app.py --create-user admin
+```
 
-## Structure
+The first registered account becomes the administrator. Additional registered accounts are treated as analysts.
+
+## Browser deployment
+
+For a browser-accessible desktop experience in a Linux-based environment, use:
+
+```bash
+bash run_desktop_browser.sh
+```
+
+This starts the virtual display and noVNC bridge so the app can be accessed through a browser on a remote device or Codespaces port-forwarded URL.
+
+## Demo workflow
+
+From the application UI, users can:
+
+- log in with a created account
+- load synthetic demo events
+- review behavior events by risk level and timing
+- investigate alert records
+- compare model performance and anomaly trends
+- regenerate data and retrain the model from settings
+
+## Project structure
 
 ```text
-app.py                 PySide6 entry point and account bootstrap
-config/                Environment-driven settings
-database/              SQLAlchemy models, session factory, initialization, CRUD
-gui/                   Login, dashboard, events, alerts, investigations, analytics, settings
-ml/                    Preprocessing, Isolation Forest, classifiers, risk, SHAP, training
-data/                  Synthetic CSV and deterministic generator
-services/              Authentication, event analysis, alert, and simulation workflows
-tests/                 Isolated SQLite and behavioral workflow tests
+app.py                 Main desktop application entry point
+config/                Environment settings and configuration
+database/              SQLAlchemy models, session setup, and DB utilities
+gui/                   Login, dashboard, alerts, investigations, analytics, and settings screens
+ml/                    Data pipeline, detection, model training, and evaluation
+services/              Authentication, event scoring, simulation, and alert logic
+data/                  Synthetic data generator and sample datasets
+tests/                 Automated workflow and model validation checks
+run_desktop_browser.sh Browser access helper for remote environments
 ```
 
-## Architecture And Data Flow
+## Model and evaluation workflow
 
-```mermaid
-flowchart LR
-	GUI[PySide6 analyst workspace] --> Services[Authentication, event, alert, simulation services]
-	GUI --> CRUD[SQLAlchemy query helpers]
-	Services --> Database[(SQLite or Neon PostgreSQL)]
-	CRUD --> Database
-	Services --> ML[Preprocessing, Isolation Forest, classifiers, risk engine]
-	ML --> Artifacts[Joblib model artifacts]
-	ML --> Explainability[Optional SHAP attribution]
-	Database --> GUI
-```
+The model training pipeline reads the synthetic behavior dataset, trains multiple classifiers, saves artifacts under `ml/models/`, and writes a report to `ml/model_evaluation_report.md`.
 
-## Database Relationships
+This includes:
 
-The schema below reflects the current SQLAlchemy models. Model metrics are stored per training run; prediction, anomaly, and risk records attach to analyzed events.
+- accuracy
+- precision
+- recall
+- F1 score
+- ROC-AUC
+- confusion matrix
 
-```mermaid
-erDiagram
-	USER ||--o{ DEVICE : owns
-	USER ||--o{ BEHAVIOR_EVENT : generates
-	USER ||--o{ BEHAVIOR_BASELINE : establishes
-	USER ||--o{ AUTH_SESSION : authenticates
-	USER ||--o{ INVESTIGATION : investigates
-	DEVICE ||--o{ BEHAVIOR_EVENT : observes
-	BEHAVIOR_EVENT ||--o| PREDICTION : classified_as
-	BEHAVIOR_EVENT ||--o| ANOMALY : analyzed_for
-	BEHAVIOR_EVENT ||--o| RISK_SCORE : scored_with
-	BEHAVIOR_EVENT ||--o{ ALERT : raises
-	ALERT ||--o{ INVESTIGATION : reviewed_in
-	MODEL_METRIC {
-		int id PK
-		string model_name
-		float accuracy
-		float precision
-		float recall
-		float f1
-		float roc_auc
-		datetime trained_at
-	}
-```
+The synthetic data is designed for demonstration and educational analysis. It is not intended to represent real-world production security telemetry or model performance guarantees.
 
-## Security And Limitations
+## Security and limitations
 
-- Passwords use bcrypt hashes; session tokens are stored as SHA-256 hashes with expirations.
-- The simulator uses reserved documentation IP ranges. CSV import replaces IPs and irreversibly hashes imported device identifiers.
-- The platform is a defensive, educational demo. It does not collect live telemetry and has no production monitoring guarantees.
-- Schema setup currently uses `create_all` plus a small compatibility update; use a migration framework before evolving a shared production database.
-- An audit log, custom date ranges, and production-grade role/assignment policy are future work. No screenshots are checked into this repository; capture them from a provisioned demo session.
+- Passwords are stored as bcrypt hashes.
+- Session tokens are hashed before persistence.
+- User/device identifiers and IPs are anonymized in imported CSV data.
+- The project is a defensive demo platform and is not a production monitoring system.
+- Use a proper migration framework before applying this schema to a shared production database.
 
-All sample addresses use reserved documentation networks. This project does not collect host telemetry or perform surveillance, credential theft, exploitation, or system access. It is an educational defensive analytics demonstration and is not a replacement for an operational security monitoring system.
+## Mission
+
+NeuroShield AI demonstrates how behavioral baselines, explainable risk modeling, and analyst workflows can be combined into a practical security intelligence tool for learning, prototyping, and operational simulation.
+
+## License
+
+This project is provided for educational and demonstration purposes. Review the repository license before using it in production workflows.
