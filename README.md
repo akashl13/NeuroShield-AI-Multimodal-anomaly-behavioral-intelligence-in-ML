@@ -1,5 +1,7 @@
 # NeuroShield AI
 
+[![Python checks](https://github.com/akashl13/NeuroShield-AI-Multimodal-anomaly-behavioral-intelligence-in-ML/actions/workflows/ci.yml/badge.svg)](https://github.com/akashl13/NeuroShield-AI-Multimodal-anomaly-behavioral-intelligence-in-ML/actions/workflows/ci.yml)
+
 ![NeuroShield banner](assets/neuroshield-banner.svg)
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
