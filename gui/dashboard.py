@@ -25,6 +25,8 @@ class DashboardPage(QWidget):
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         page = QWidget()
+        self.scroll_area = scroll
+        self.content_page = page
         self.layout = vertical(page)
         scroll.setWidget(page)
         outer.addWidget(scroll)
@@ -134,6 +136,8 @@ class DashboardPage(QWidget):
                 set_cell(self.alert_table, row, 1, alert.severity, {"CRITICAL": "#b8494c", "HIGH": "#cb8c32"}.get(alert.severity))
                 set_cell(self.alert_table, row, 2, alert.title)
                 set_cell(self.alert_table, row, 3, alert.status.title())
+            self.layout.activate()
+            self.content_page.setMinimumHeight(self.layout.sizeHint().height())
         finally:
             session.close()
 
