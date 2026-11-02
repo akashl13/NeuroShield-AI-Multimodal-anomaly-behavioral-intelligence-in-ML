@@ -63,7 +63,7 @@ flowchart LR
 ### Prerequisites
 
 - Python 3.11 or later
-- Linux desktop or graphical environment for the app UI
+- Linux or Windows desktop with a graphical environment for the app UI
 - Optional: Codespaces with browser-based VNC/noVNC access
 
 ### Install
@@ -98,6 +98,21 @@ python -m pytest -q
 python app.py
 ```
 
+### Run on Windows with VS Code
+
+Open the project folder in VS Code, choose **Terminal → New Terminal**, and run these commands in PowerShell:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m database.init_db
+python app.py
+```
+
+If the `py` launcher is unavailable, replace `py -3` with `python`. The app uses a local SQLite database by default; no `.env` file or hosted database is required for a local demo.
+
 To create the first admin user from the terminal:
 
 ```bash
@@ -118,10 +133,19 @@ This starts the virtual display and noVNC bridge so the app can be accessed thro
 
 ## Demo workflow
 
-From the application UI, users can:
+To populate the dashboard with sample activity:
+
+1. Start the app and create an account on the sign-in screen. The first account is the administrator.
+2. Open **Events** and select **Load 30 demo events**. This adds synthetic events to the local database.
+3. Return to **Overview** to see event and risk summaries. Use **Alerts** to review generated alerts and **Analytics** to inspect trends.
+4. Select an event to review its risk score, prediction, and contributing signals.
+
+Loading demo events again is additive. The sample records use synthetic identifiers and documentation-only IP ranges; no real activity is included.
+
+The application also supports:
 
 - log in with a created account
-- load synthetic demo events
+- generate a normal event or a suspicious event from the Events page
 - review behavior events by risk level and timing
 - investigate alert records
 - compare model performance and anomaly trends
