@@ -22,6 +22,8 @@ class DashboardPage(QWidget):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         page = QWidget()
         self.layout = vertical(page)
         scroll.setWidget(page)
@@ -67,6 +69,7 @@ class DashboardPage(QWidget):
         self.layout.addLayout(second_row)
         self.layout.addWidget(section_title("Latest alerts"))
         self.alert_table = make_table(["Created", "Severity", "Signal", "Status"])
+        self.alert_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.layout.addWidget(self.alert_table, 1)
         self.refresh()
 
@@ -122,6 +125,10 @@ class DashboardPage(QWidget):
             self.distribution_chart.draw_idle()
             alerts = list(session.scalars(select(Alert).order_by(desc(Alert.created_at)).limit(8)))
             self.alert_table.setRowCount(len(alerts))
+            row_height = self.alert_table.verticalHeader().defaultSectionSize()
+            header_height = self.alert_table.horizontalHeader().sizeHint().height()
+            table_height = self.alert_table.frameWidth() * 2 + header_height + row_height * max(1, len(alerts))
+            self.alert_table.setFixedHeight(table_height)
             for row, alert in enumerate(alerts):
                 set_cell(self.alert_table, row, 0, alert.created_at.strftime("%Y-%m-%d %H:%M"))
                 set_cell(self.alert_table, row, 1, alert.severity, {"CRITICAL": "#b8494c", "HIGH": "#cb8c32"}.get(alert.severity))

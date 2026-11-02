@@ -27,7 +27,8 @@ QProgressBar { background: #e7edef; border: 0; border-radius: 4px; height: 12px;
 QProgressBar::chunk { background: #e4a23b; border-radius: 4px; }
 QTabWidget::pane { border: 1px solid #dfe6e8; background: white; }
 QTabBar::tab { padding: 9px 15px; }
-QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }
-QScrollBar::handle:vertical { background: #ccd7df; min-height: 28px; border-radius: 5px; }
+QScrollBar:vertical { background: #e8eef2; width: 14px; margin: 2px; border-radius: 7px; }
+QScrollBar::handle:vertical { background: #8fa4b1; min-height: 36px; border-radius: 6px; }
+QScrollBar::handle:vertical:hover { background: #587789; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 """
